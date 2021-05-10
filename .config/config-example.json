@@ -1,0 +1,10 @@
+{
+    "service"          : "Clockify",
+    "token"            : "your-Clockify-token",
+    "workspace"        : "your-Clockify-workspace-id",
+    "user_id"          : "your-Clockify-user-id",
+    "jira_token"       : "your-JIRA-token",
+    "jira_email"       : "your-JIRA-email",
+    "jira_endpoint"    : "https://your-jira-instance.atlassian.net",
+    "timezone"         : "America/New_York"
+}
