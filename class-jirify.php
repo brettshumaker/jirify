@@ -87,7 +87,7 @@ class Jirify {
 
 		// If there was a problem retrieving the data, return false.
 		if ( is_null( $data ) ) {
-			$this->line( "Problem retrieving $store" );
+			$this->line( "Problem retrieving $store from cache...refreshing." );
 			return false;
 		}
 
@@ -133,4 +133,46 @@ class Jirify {
 		}
 		return $value;
 	}
+
+	/**
+	 * Gets an output string for a "friendly" representation of a number of seconds.
+	 * Converts a duration in seconds to Xh Xm Xs as needed for display.
+	 *
+	 * @param int $duration_in_seconds
+	 * @return string
+	 */
+	public function get_friendly_duration_output( $duration_in_seconds ) {
+		$output_duration = new DateIntervalEnhanced( "PT" . $duration_in_seconds ."S" );
+		$hours   = (int) $output_duration->recalculate()->format('%h');
+		$minutes = (int) $output_duration->recalculate()->format('%i');
+		$seconds = (int) $output_duration->recalculate()->format('%s');
+
+		$output = '';
+
+		if ( $hours > 0 ) {
+			$output .= $hours . 'h ';
+		}
+
+		$output .= $minutes . 'm' . ( $seconds > 0 ? ' ' . $seconds . 's' : '' );
+
+		return $output;
+	}
+}
+
+/**
+ * Utility class to overflow lots of seconds into hours minutes, and seconds.
+ * Used by Jirify_Clockify->get_friendly_duration_output()
+ */
+class DateIntervalEnhanced extends DateInterval {
+
+    public function recalculate()
+    {
+        $from = new DateTime;
+        $to = clone $from;
+        $to = $to->add($this);
+        $diff = $from->diff($to);
+        foreach ($diff as $k => $v) $this->$k = $v;
+        return $this;
+    }
+
 }
