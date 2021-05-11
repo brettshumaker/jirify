@@ -40,6 +40,10 @@ class Jirify {
 			$curl_args[CURLOPT_POSTFIELDS] = $args['body'];
 		}
 
+		if ( isset( $args['auth'] ) ) {
+			$curl_args[CURLOPT_USERPWD] = $args['auth']['username'] . ":" . $args['auth']['password'];
+		}
+
 		curl_setopt_array(
 			$curl,
 			$curl_args
