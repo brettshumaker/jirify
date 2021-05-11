@@ -51,10 +51,12 @@ class Jirify_Clockify extends Jirify {
 			$project_id = $time_entry->projectId;
 			$project    = $projects->$project_id;
 			$client_id  = $project->clientId;
+			$description = ! empty( $time_entry->description ) ? '"' . $time_entry->description . '"' : '';
 
 			// If we don't have a client ID for the project, we can't track it - skip.
 			if ( ! $client_id ) {
-				$this->line( "❕ Skipping log for " . $project->name . " (no client assigned)." );
+				$skip_out = implode( ' ', array_filter( [$description, $project->name, "(no client assigned)."] ) );
+				$this->line( "❕ Skipping log for " . $skip_out );
 				continue;
 			}
 
@@ -72,9 +74,11 @@ class Jirify_Clockify extends Jirify {
 				$this->line( "❌ Invalid duration string for " . $client->name . ": " . $time_entry->timeInterval->duration );
 			}
 
+			$description = ! empty( $description ) ? " - $description" : '';
+
 			// This sends the time entry to Jira. $duration needs to be in seconds.
 			if ( ! $dry_run && $this->jira->send_worklog( $client->name, $duration, '', $start ) ) {
-				$this->line( "✅ Logged " . $this->get_friendly_duration_output( $duration ) . " for " . $client->name );
+				$this->line( "✅ Logged " . $this->get_friendly_duration_output( $duration ) . " for " . $client->name . $description );
 				if ( $start > $last_logged_start ) {
 					$last_logged_start = $start;
 				}
@@ -82,10 +86,9 @@ class Jirify_Clockify extends Jirify {
 				if ( $start > $dry_last_logged_start ) {
 					$dry_last_logged_start = $start;
 				}
-				$this->line( "✅ Would have logged " . $this->get_friendly_duration_output( $duration ) . " for " . $client->name );
-				$this->line( "$dry_last_logged_start || $start ");
+				$this->line( "✅ Would have logged " . $this->get_friendly_duration_output( $duration ) . " for " . $client->name . $description );
 			} else {
-				$this->line( "❌ Error logging " . $this->get_friendly_duration_output( $duration ) . " for " . $client->name );
+				$this->line( "❌ Error logging " . $this->get_friendly_duration_output( $duration ) . " for " . $client->name . $description );
 			}
 		}
 
