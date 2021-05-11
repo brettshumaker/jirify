@@ -61,12 +61,12 @@ class Jirify_Toggl extends Jirify {
 			}
 
 			$client       = $clients->$client_id;
-			$start        = $time_entry->timeInterval->start;
+			$start        = $time_entry->start;
 			$duration     = $this->round_up( $time_entry->duration );
 
 			if ( 0 === $duration ) {
 				// There was a problem with the duration string, skip
-				$this->line( "❌ Invalid duration string for " . $client->name . ": " . $time_entry->timeInterval->duration );
+				$this->line( "❌ Invalid duration string for " . $client->name . ": " . $time_entry->duration );
 			}
 
 			$description = ! empty( $description ) ? " - $description" : '';
