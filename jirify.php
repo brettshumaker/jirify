@@ -4,8 +4,8 @@
  * If I'm going to extend this to allow for additional time tracking APIs, that selection
  * should be stored in config. Read that value and load the appropriate files.
  */
-require 'class-jirify.php';
-require 'class-jirify-jira.php';
+require dirname( __FILE__ ) . '/class-jirify.php';
+require dirname( __FILE__ ) . '/class-jirify-jira.php';
 
 // Get our config file.
 $config = json_decode( file_get_contents( dirname( __FILE__ ) . '/.config/config.json' ) );
