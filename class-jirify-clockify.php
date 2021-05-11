@@ -19,7 +19,11 @@ class Jirify_Clockify extends Jirify {
 		);
 
 		// Set up the Jira connection.
-		$this->jira = new Jirify_Jira( $config->jira_token, $config->jira_email, $config->jira_endpoint );
+		$this->jira = new Jirify_Jira( $config->jira_token, $config->jira_email, $config->jira_endpoint, $config->jira_project_key );
+	}
+
+	public function test() {
+		$this->jira->get_client_mapping();
 	}
 
 	/**
@@ -107,61 +111,6 @@ class Jirify_Clockify extends Jirify {
 		$this->line( "\n👋 All done! Bye!" );
 	}
 
-	public function test_log_date() {
-		$projects          = $this->get_projects();
-		$clients           = $this->get_clients();
-		$entries           = $this->get_entries();
-		$last_logged_start = false;
-
-		// There was an error getting one of the necessary data types. Let's stop.
-		if ( false === $entries || false === $projects || false === $clients ) {
-			$this->line( 'Encountered an error.' );
-			$this->line( var_export( [ $entries, $projects, $clients ], true ) );
-			return;
-		}
-
-		if ( empty( $entries ) ) {
-			$this->line( "⚪ No entries found." );
-		}
-
-		$test_projects = [];
-		$this->line( gettype( $projects ) );
-		foreach ( $projects as $pid => $p ) {
-			$this->line( $pid . ' - ' . gettype( $pid ) );
-			$test_projects[] = $pid;
-		}
-		$this->line();
-
-		// Loop through each time entry
-		foreach( $entries as $time_entry ) {
-			$project_id = $time_entry->projectId;
-			$project    = $projects->$project_id;
-			$client_id  = $project->clientId;
-
-			// If we don't have a client ID for the project, we can't track it - skip.
-			if ( ! $client_id ) {
-				$this->line( "❕ Skipping log for " . $project->name . " (no client assigned)." );
-				continue;
-			}
-
-			// timeInterval->duration will be NULL if timer is running, skip.
-			if ( is_null( $time_entry->timeInterval->duration ) ) {
-				continue;
-			}
-
-			$client       = $clients->$client_id;
-			$start        = $time_entry->timeInterval->start;
-			$duration     = $this->round_up( $this->clockify_duration_to_seconds( $time_entry->timeInterval->duration ) );
-
-			if ( $start > $last_logged_start ) {
-				$last_logged_start = $start;
-			}
-			$this->line( "✅ $last_logged_start ||| $start ||| Would have logged " . $this->get_friendly_duration_output( $duration ) . " for " . $client->name );
-		}
-
-		$this->line( "Would have set last logged to: $last_logged_start" );
-	}
-
 	/**
 	 * Gets a array of Clockify project objects.
 	 * Returns an object if the request failed, otherwise an array of "project" objects.
@@ -169,7 +118,7 @@ class Jirify_Clockify extends Jirify {
 	 * @return mixed
 	 */
 	public function get_projects() {
-		return $this-> get_data_store( 'projects' );
+		return $this->get_data_store( 'projects' );
 	}
 
 	/**
@@ -179,7 +128,7 @@ class Jirify_Clockify extends Jirify {
 	 * @return mixed
 	 */
 	public function get_clients() {
-		return $this-> get_data_store( 'clients' );
+		return $this->get_data_store( 'clients' );
 	}
 
 	/**
@@ -382,56 +331,6 @@ class Jirify_Clockify extends Jirify {
 		$total_duration += (int) $dateInterval->format('%s');
 
 		return $total_duration;
-	}
-
-	/**
-	 * Retrieves cache data from a data store.
-	 *
-	 * @param string $store
-	 * @return mixed An array of objects or false when expired, not found, or a problem was encountered loading the file
-	 */
-	private function get_cache_data( $store ) {
-		$file_path = dirname( __FILE__ ) . "/.cache/$store.json";
-
-		// If the file doesn't exist, return false.
-		if ( ! file_exists( $file_path ) ) {
-			return false;
-		}
-
-		$data = json_decode( file_get_contents( $file_path ) );
-
-		// If there was a problem retrieving the data, return false.
-		if ( is_null( $data ) ) {
-			$this->line( "Problem retrieving $store" );
-			return false;
-		}
-
-		$expired = time() > $data->expires ? true : false;
-
-		// If the data has expired, return false.
-		if ( $expired ) {
-			return false;
-		}
-
-		return $data->$store;
-	}
-
-	/**
-	 * Sets the cache data from a data store.
-	 * 
-	 * @var string $store  The data store to set.
-	 * @var array  $data   The array of data objects to save to cache.
-	 * @var int    $expiry The expiration time for the data - defaults to 12 hours.
-	 */
-	private function set_cache_data( $store, $data = array(), $expiry = 60 * 60 * 12 ) {
-		$file_path        = dirname( __FILE__ ) . "/.cache/$store.json";
-		$expire_timestamp = time() + $expiry;
-		$data_to_store    = json_encode( (object) array(
-			'expires' => $expire_timestamp,
-			$store    => $data,
-		) );
-
-		file_put_contents( $file_path, $data_to_store );
 	}
 
 	/**
