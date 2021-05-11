@@ -6,20 +6,6 @@ class Jirify {
 	public function __construct() {
 	}
 
-	public function get_client_mapping() {
-
-		if ( is_null( $this->client_mapping ) ) {
-			$this->client_mapping = (array) json_decode( file_get_contents( dirname( __FILE__ ) . '/.data/mapping.json' ) );
-		}
-
-		if ( ! $this->client_mapping ) {
-			$this->line( "No client issue mapping found! Please add this data to ./data/mapping.json" );
-			die();
-		}
-
-		return $this->client_mapping;
-	}
-
 	/**
 	 * Outputs a line to the screen and appends a \n character to it.
 	 * We're ignoring standards here because there's nothing nefarious
@@ -77,6 +63,56 @@ class Jirify {
 	public function remote_post( $url, $args ) {
 		$args['method'] = 'POST';
 		return $this->remote_request( $url, $args );
+	}
+
+	/**
+	 * Retrieves cache data from a data store.
+	 *
+	 * @param string $store
+	 * @return mixed An array of objects or false when expired, not found, or a problem was encountered loading the file
+	 */
+	public function get_cache_data( $store ) {
+		$file_path = dirname( __FILE__ ) . "/.cache/$store.json";
+
+		// If the file doesn't exist, return false.
+		if ( ! file_exists( $file_path ) ) {
+			return false;
+		}
+
+		$data = json_decode( file_get_contents( $file_path ) );
+
+		// If there was a problem retrieving the data, return false.
+		if ( is_null( $data ) ) {
+			$this->line( "Problem retrieving $store" );
+			return false;
+		}
+
+		$expired = time() > $data->expires ? true : false;
+
+		// If the data has expired, return false.
+		if ( $expired ) {
+			return false;
+		}
+
+		return $data->$store;
+	}
+
+	/**
+	 * Sets the cache data from a data store.
+	 * 
+	 * @var string $store  The data store to set.
+	 * @var array  $data   The array of data objects to save to cache.
+	 * @var int    $expiry The expiration time for the data - defaults to 12 hours.
+	 */
+	public function set_cache_data( $store, $data = array(), $expiry = 60 * 60 * 12 ) {
+		$file_path        = dirname( __FILE__ ) . "/.cache/$store.json";
+		$expire_timestamp = time() + $expiry;
+		$data_to_store    = json_encode( (object) array(
+			'expires' => $expire_timestamp,
+			$store    => $data,
+		) );
+
+		file_put_contents( $file_path, $data_to_store );
 	}
 
 	/**
