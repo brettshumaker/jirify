@@ -240,9 +240,13 @@ class Jirify_Toggl extends Jirify {
 		$datetime->setTimestamp( $time );
 		$date = $datetime->format( 'c' );
 
-		// Here, were loading the whole data.json file and just updating the last_logged value in case we store anything there in the future.
-		$last_logged_raw = json_decode( file_get_contents( dirname( __FILE__ ) . '/.data/data.json' ) );
-		$last_logged_raw->last_logged = $date;
+		if ( file_exists( dirname( __FILE__ ) . '/.data/data.json' ) ) {
+			// Here, were loading the whole data.json file and just updating the last_logged value in case we store anything there in the future.
+			$last_logged_raw = json_decode( file_get_contents( dirname( __FILE__ ) . '/.data/data.json' ) );
+			$last_logged_raw->last_logged = $date;
+		} else {
+			$last_logged_raw = json_decode( '{"last_logged":"' . $date . '"}');
+		}
 
 		file_put_contents( dirname( __FILE__ ) . '/.data/data.json', json_encode( $last_logged_raw, JSON_PRETTY_PRINT ) );
 		$this->line( "📆 Setting last logged date to $date" );
