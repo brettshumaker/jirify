@@ -5,6 +5,7 @@
     "user_id"          : "your-Clockify-user-id",
     "jira_token"       : "your-JIRA-token",
     "jira_email"       : "your-JIRA-email",
+    "jira_project_key" : "your-JIRA-project-key",
     "jira_endpoint"    : "https://your-jira-instance.atlassian.net",
     "timezone"         : "America/New_York"
 }
