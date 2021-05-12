@@ -1,6 +1,4 @@
 
-.cache/
 .config/config.json
 .config/nicknames.json
-.data/
 *.DS_Store
