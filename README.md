@@ -28,16 +28,16 @@ php /path/to/jirify/jirify.php log_time
 ```
 
 ### Dry Run
-Jirify also accepts a `--dry-run=true` flag to run the command without actually logging time to Jira.
+Jirify also accepts a `--dry_run=true` flag to run the command without actually logging time to Jira.
 
 ### Dates
-Jirify will automatically remember the start time of the last time entry that it logs and then start from there the next time the command is run. The first time you run it, however, it defaults to midnight of the current day. If you want to start at a particular time, you can use the `--start-date` flag and pass in a `YYYY-MM-DD` date string:
+Jirify will automatically remember the start time of the last time entry that it logs and then start from there the next time the command is run. The first time you run it, however, it defaults to midnight of the current day. If you want to start at a particular time, you can use the `--start_date` flag and pass in a `YYYY-MM-DD` date string:
 
 ```
 php /path/to/jirify/jirify.php log_time --start_date=2021-05-10
 ```
 
-It also accepts `--end-date` in the same format.
+It also accepts `--end_date` in the same format.
 
 ### Aliases
 
