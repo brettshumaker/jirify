@@ -245,7 +245,7 @@ class Jirify_Clockify extends Jirify {
 	 * @return mixed Returns string if found, otherwise false.
 	 */
 	private function get_last_logged() {
-		if ( file_exists( dirname( __FILE__ ) . '/.data/data.json' ) ) ) {
+		if ( file_exists( dirname( __FILE__ ) . '/.data/data.json' ) ) {
 			$last_logged_raw = json_decode( file_get_contents( dirname( __FILE__ ) . '/.data/data.json' ) );
 			$this->line( "📆 Getting last logged date..." );
 			return '' !== $last_logged_raw->last_logged ? $last_logged_raw->last_logged : false;
