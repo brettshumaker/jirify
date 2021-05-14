@@ -1,0 +1,18 @@
+{
+    "service" : {
+        "name"      : "Toggl",
+        "token"     : "your-Toggl-token",
+        "workspace" : "your Toggl-workspace-id"
+    },
+    "jira" : {
+        "token"       : "your-JIRA-token",
+        "email"       : "your-JIRA-email",
+        "project_key" : "your-JIRA-project-key",
+        "endpoint"    : "https://your-jira-instance.atlassian.net"
+    },
+    "options" : {
+        "timezone"          : "America/New_York",
+        "round_up"          : true,
+        "send_descriptions" : false
+    }
+}

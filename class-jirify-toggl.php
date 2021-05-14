@@ -4,17 +4,17 @@ class Jirify_Toggl extends Jirify {
 	private $token;
 	private $workspace;
 	private $api_base;
-	private $timezone;
+	private $options;
 	private $jira;
 
-	public function __construct( $config ) {
-		$this->token       = $config->token;
-		$this->workspace   = $config->workspace;
-		$this->timezone    = $config->timezone;
-		$this->api_base    = 'https://api.track.toggl.com/api/v8';
+	public function __construct( $toggl, $options, $jira ) {
+		$this->token     = $toggl->token;
+		$this->workspace = $toggl->workspace;
+		$this->api_base  = 'https://api.track.toggl.com/api/v8';
+		$this->options   = $options;
 
 		// Set up the Jira connection.
-		$this->jira = new Jirify_Jira( $config->jira_token, $config->jira_email, $config->jira_endpoint, $config->jira_project_key );
+		$this->jira = $jira;
 	}
 
 	/**
@@ -62,18 +62,26 @@ class Jirify_Toggl extends Jirify {
 
 			$client       = $clients->$client_id;
 			$start        = $time_entry->start;
-			$duration     = $this->round_up( $time_entry->duration );
+			$duration     = $time_entry->duration;
+
+			if ( $this->options->round_up ) {
+				$this->round_up( $time_entry->duration );
+			}
 
 			if ( 0 === $duration ) {
 				// There was a problem with the duration string, skip
 				$this->line( "❌ Invalid duration string for " . $client->name . ": " . $time_entry->duration );
 			}
 
-			$description = ! empty( $description ) ? " - $description" : '';
+			$description_output = ! empty( $description ) ? " - $description" : '';
+
+			if ( ! $this->options->send_descriptions ) {
+				$description = '';
+			}
 
 			// This sends the time entry to Jira. $duration needs to be in seconds.
-			if ( ! $dry_run && $this->jira->send_worklog( $client->name, $duration, '', $start ) ) {
-				$this->line( "✅ Logged " . $this->get_friendly_duration_output( $duration ) . " for " . $client->name . $description );
+			if ( ! $dry_run && $this->jira->send_worklog( $client->name, $duration, $description, $start ) ) {
+				$this->line( "✅ Logged " . $this->get_friendly_duration_output( $duration ) . " for " . $client->name . $description_output );
 				if ( $start > $last_logged_start ) {
 					$last_logged_start = $start;
 				}
@@ -81,9 +89,9 @@ class Jirify_Toggl extends Jirify {
 				if ( $start > $dry_last_logged_start ) {
 					$dry_last_logged_start = $start;
 				}
-				$this->line( "✅ Would have logged " . $this->get_friendly_duration_output( $duration ) . " for " . $client->name . $description );
+				$this->line( "✅ Would have logged " . $this->get_friendly_duration_output( $duration ) . " for " . $client->name . $description_output );
 			} else {
-				$this->line( "❌ Error logging " . $this->get_friendly_duration_output( $duration ) . " for " . $client->name . $description );
+				$this->line( "❌ Error logging " . $this->get_friendly_duration_output( $duration ) . " for " . $client->name . $description_output );
 			}
 		}
 
@@ -280,7 +288,7 @@ class Jirify_Toggl extends Jirify {
     private function get_datetimezone_offset() {
         try{
 			// Try the config file first.
-			$tz = new DateTimeZone( $this->timezone );
+			$tz = new DateTimeZone( $this->options->timezone );
 		} catch( Exception $e ) {
 			// Let the user know that their config is missing or has an invalid timezone set.
 			$this->line( "🕒 Missing or invalid timezone set in config...trying system timezone." );

@@ -15,8 +15,8 @@ $jirify = new Jirify();
 
 // Set up our service - default to Clockify.
 if ( $config->service ) {
-    $this_service      = 'Jirify_' . ucwords( $config->service );
-    $this_service_file = dirname( __FILE__ ) . '/class-jirify-' . strtolower( $config->service ) . '.php';
+    $this_service      = 'Jirify_' . ucwords( $config->service->name );
+    $this_service_file = dirname( __FILE__ ) . '/class-jirify-' . strtolower( $config->service->name ) . '.php';
 } else {
     $this_service = 'Jirify_Clockify';
     $this_service_file = dirname( __FILE__ ) . '/class-jirify-clockify.php';
@@ -36,8 +36,26 @@ if ( ! class_exists( $this_service ) ) {
     die();
 }
 
-// Load up specific Jirify service
-$jirify_service = new $this_service( $config );
+// Set default options if missing from config.
+if ( ! isset( $config->options ) ) {
+    $config->options = (object) [ 'timezone' => 'America/New_York' ];
+}
+
+// Set default round_up if missing.
+if ( ! isset( $config->options->round_up ) ) {
+    $config->options->round_up = true;
+}
+
+// Set default send_descriptions if missing.
+if ( ! isset( $config->options->send_descriptions ) ) {
+    $config->options->send_descriptions = false;
+}
+
+// Load the Jira class.
+$jira = new Jirify_Jira( $config->jira );
+
+// Load up specific Jirify service.
+$jirify_service = new $this_service( $config->service, $config->options, $jira );
 
 if ( isset( $argv[1] ) ) {
     if ( method_exists( $this_service, $argv[1] ) ) {

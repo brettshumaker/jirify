@@ -6,11 +6,11 @@ class Jirify_Jira extends Jirify {
 	private $endpoint;
 	private $project_key;
 
-	public function __construct( $token, $email, $endpoint, $project_key ) {
-		$this->token          = $token;
-		$this->email          = $email;
-		$this->endpoint       = $endpoint;
-		$this->project_key    = $project_key;
+	public function __construct( $jira_options ) {
+		$this->token          = $jira_options->token;
+		$this->email          = $jira_options->email;
+		$this->endpoint       = $jira_options->endpoint;
+		$this->project_key    = $jira_options->project_key;
 		$this->client_mapping = $this->get_client_mapping();
 	}
 
