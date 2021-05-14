@@ -74,7 +74,7 @@ class Jirify_Clockify extends Jirify {
 			$duration     = $this->clockify_duration_to_seconds( $time_entry->timeInterval->duration );
 
 			if ( $this->options->round_up ) {
-				$this->round_up( $this->clockify_duration_to_seconds( $time_entry->timeInterval->duration ) );
+				$duration = $this->round_up( $duration );
 			}
 
 			if ( 0 === $duration ) {
