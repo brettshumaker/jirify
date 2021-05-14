@@ -5,21 +5,21 @@ class Jirify_Clockify extends Jirify {
 	private $workspace;
 	private $user_id;
 	private $api_base;
-	private $timezone;
+	private $options;
 	private $jira;
 
-	public function __construct( $config ) {
-		$this->token       = $config->token;
-		$this->workspace   = $config->workspace;
-		$this->user_id     = $config->user_id;
-		$this->timezone    = $config->timezone;
-		$this->api_base    = sprintf(
+	public function __construct( $clockify, $options, $jira ) {
+		$this->token     = $clockify->token;
+		$this->workspace = $clockify->workspace;
+		$this->user_id   = $clockify->user_id;
+		$this->options   = $options;
+		$this->api_base  = sprintf(
 			'https://api.clockify.me/api/v1/workspaces/%s',
 			rawurlencode( $this->workspace )
 		);
 
 		// Set up the Jira connection.
-		$this->jira = new Jirify_Jira( $config->jira_token, $config->jira_email, $config->jira_endpoint, $config->jira_project_key );
+		$this->jira = $jira;
 	}
 
 	public function test() {
@@ -71,18 +71,26 @@ class Jirify_Clockify extends Jirify {
 
 			$client       = $clients->$client_id;
 			$start        = $time_entry->timeInterval->start;
-			$duration     = $this->round_up( $this->clockify_duration_to_seconds( $time_entry->timeInterval->duration ) );
+			$duration     = $this->clockify_duration_to_seconds( $time_entry->timeInterval->duration );
 
 			if ( 0 === $duration ) {
 				// There was a problem with the duration string, skip
 				$this->line( "❌ Invalid duration string for " . $client->name . ": " . $time_entry->timeInterval->duration );
 			}
 
-			$description = ! empty( $description ) ? " - $description" : '';
+			if ( $this->options->round_up ) {
+				$duration = $this->round_up( $duration );
+			}
+
+			$description_output = ! empty( $description ) ? " - $description" : '';
+
+			if ( ! $this->options->send_descriptions ) {
+				$description = '';
+			}
 
 			// This sends the time entry to Jira. $duration needs to be in seconds.
-			if ( ! $dry_run && $this->jira->send_worklog( $client->name, $duration, '', $start ) ) {
-				$this->line( "✅ Logged " . $this->get_friendly_duration_output( $duration ) . " for " . $client->name . $description );
+			if ( ! $dry_run && $this->jira->send_worklog( $client->name, $duration, $description, $start ) ) {
+				$this->line( "✅ Logged " . $this->get_friendly_duration_output( $duration ) . " for " . $client->name . $description_output );
 				if ( $start > $last_logged_start ) {
 					$last_logged_start = $start;
 				}
@@ -90,9 +98,9 @@ class Jirify_Clockify extends Jirify {
 				if ( $start > $dry_last_logged_start ) {
 					$dry_last_logged_start = $start;
 				}
-				$this->line( "✅ Would have logged " . $this->get_friendly_duration_output( $duration ) . " for " . $client->name . $description );
+				$this->line( "✅ Would have logged " . $this->get_friendly_duration_output( $duration ) . " for " . $client->name . $description_output );
 			} else {
-				$this->line( "❌ Error logging " . $this->get_friendly_duration_output( $duration ) . " for " . $client->name . $description );
+				$this->line( "❌ Error logging " . $this->get_friendly_duration_output( $duration ) . " for " . $client->name . $description_output );
 			}
 		}
 
@@ -293,7 +301,7 @@ class Jirify_Clockify extends Jirify {
 		// Try and set the create the DateTimeZone.
 		try{
 			// Try the config file first.
-			$tz = new DateTimeZone( $this->timezone );
+			$tz = new DateTimeZone( $this->options->timezone );
 		} catch( Exception $e ) {
 			// Let the user know that their config is missing or has an invalid timezone set.
 			$this->line( "🕒 Missing or invalid timezone set in config...trying system timezone." );
