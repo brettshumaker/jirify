@@ -65,7 +65,7 @@ class Jirify_Toggl extends Jirify {
 			$duration     = $time_entry->duration;
 
 			if ( $this->options->round_up ) {
-				$this->round_up( $time_entry->duration );
+				$duration = $this->round_up( $duration );
 			}
 
 			if ( 0 === $duration ) {
