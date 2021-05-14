@@ -73,13 +73,13 @@ class Jirify_Clockify extends Jirify {
 			$start        = $time_entry->timeInterval->start;
 			$duration     = $this->clockify_duration_to_seconds( $time_entry->timeInterval->duration );
 
-			if ( $this->options->round_up ) {
-				$duration = $this->round_up( $duration );
-			}
-
 			if ( 0 === $duration ) {
 				// There was a problem with the duration string, skip
 				$this->line( "❌ Invalid duration string for " . $client->name . ": " . $time_entry->timeInterval->duration );
+			}
+
+			if ( $this->options->round_up ) {
+				$duration = $this->round_up( $duration );
 			}
 
 			$description_output = ! empty( $description ) ? " - $description" : '';
