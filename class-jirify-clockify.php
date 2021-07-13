@@ -98,7 +98,11 @@ class Jirify_Clockify extends Jirify {
 				if ( $start > $dry_last_logged_start ) {
 					$dry_last_logged_start = $start;
 				}
-				$this->line( "✅ Would have logged " . $this->get_friendly_duration_output( $duration ) . " for " . $client->name . $description_output );
+				if ( ! $this->jira->get_issue_id_from_client( $client->name ) ) {
+					$this->line( "❌ Would not have logged " . $this->get_friendly_duration_output( $duration ) . " for " . $client->name . ' - Could not find a Worklog match' );
+				} else {
+					$this->line( "✅ Would have logged " . $this->get_friendly_duration_output( $duration ) . " for " . $client->name . $description_output );
+				}
 			} else {
 				$this->line( "❌ Error logging " . $this->get_friendly_duration_output( $duration ) . " for " . $client->name . $description_output );
 			}

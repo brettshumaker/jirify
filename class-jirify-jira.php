@@ -15,18 +15,11 @@ class Jirify_Jira extends Jirify {
 	}
 
 	public function send_worklog( $client, $seconds, $desc = '', $date ) {
-		// Normalize strings.
-		$lc_client = strtolower( trim( $client ) );
-		$client_mapping = $this->client_mapping;
-
-		$worklogs  = array_change_key_case( $client_mapping );
-
-		if ( array_key_exists( $lc_client, $worklogs ) ) {
-			$lc_client = $worklogs[ $lc_client ];
-		}
+		// Get the issue ID for this client
+		$issue_id = $this->get_issue_id_from_client( $client );
 
 		// No match found!
-		if ( strtolower( trim( $client ) ) === $lc_client ) {
+		if ( ! $issue_id ) {
 			$this->line( sprintf( '❌ Could not find a Worklog match for client "%s"', $client ) );
 			return false;
 		}
@@ -34,7 +27,7 @@ class Jirify_Jira extends Jirify {
 		$url = sprintf(
 			'%s/rest/api/3/issue/%s/worklog',
 			$this->endpoint,
-			rawurlencode( $lc_client ),
+			rawurlencode( $issue_id ),
 		);
 
 		$args = array(
@@ -56,6 +49,30 @@ class Jirify_Jira extends Jirify {
 			return true;
 		}
 		return false;
+	}
+
+	/**
+	 * Gets an issue ID from the client mapping.
+	 *
+	 * @param string $client The client name to check.
+	 * @return string|bool The Jira issue ID, or false if no match found.
+	 */
+	public function get_issue_id_from_client( $client ) {
+		// Normalize strings.
+		$lc_client = strtolower( trim( $client ) );
+		$client_mapping = $this->client_mapping;
+
+		$worklogs  = array_change_key_case( $client_mapping );
+
+		if ( array_key_exists( $lc_client, $worklogs ) ) {
+			$issue_id = $worklogs[ $lc_client ];
+		}
+
+		if ( ! isset( $issue_id ) ) {
+			return false;
+		}
+
+		return $issue_id;
 	}
 
 	/**
