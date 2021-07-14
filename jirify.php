@@ -51,6 +51,12 @@ if ( ! isset( $config->options->send_descriptions ) ) {
     $config->options->send_descriptions = false;
 }
 
+// Should we force flush any caches?
+$config->options->flush = set_flush_args( $argv );
+
+// Tell Jira whether or not to flush client mapping.
+$config->jira->flush = ! ( $config->options->flush === 'service' );
+
 // Load the Jira class.
 $jira = new Jirify_Jira( $config->jira );
 
@@ -96,7 +102,29 @@ function parse_cli_args( $args ) {
         }
         $raw_arg = str_replace( '--' , '', $raw_arg );
         $raw_arg_arr = explode( '=', $raw_arg );
-        $parsed_args[ $raw_arg_arr[0] ] = $raw_arg_arr[1];
+        if ( count( $raw_arg_arr ) > 1 ) {
+            $parsed_args[ $raw_arg_arr[0] ] = $raw_arg_arr[1];
+        } else {
+            $parsed_args[ $raw_arg_arr[0] ] = true;
+        }
     }
     return $parsed_args;
+}
+
+function set_flush_args( $args ) {
+    $args =  parse_cli_args( array_slice( $args, 2 ) );
+
+    if ( isset( $args['flush_service'] ) ) {
+        return 'service';
+    }
+
+    if ( isset( $args['flush_jira'] ) ) {
+        return 'jira';
+    }
+
+    if ( isset( $args['flush_all'] ) ) {
+        return 'all';
+    }
+
+    return false;
 }

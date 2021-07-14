@@ -11,6 +11,7 @@ class Jirify_Jira extends Jirify {
 		$this->email          = $jira_options->email;
 		$this->endpoint       = $jira_options->endpoint;
 		$this->project_key    = $jira_options->project_key;
+		$this->flush          = $jira_options->flush;
 		$this->client_mapping = $this->get_client_mapping();
 	}
 
@@ -81,10 +82,13 @@ class Jirify_Jira extends Jirify {
 	 * @return array An array of "client name" => "jira issue key" pairs.
 	 */
 	public function get_client_mapping() {
-		// Try and get client mapping from cache.
-		$cached_mapping = $this->get_cache_data( 'mapping' );
-		if ( $cached_mapping ) {
-			return (array) $cached_mapping;
+		// If we aren't supposed to flush the cache, try and get cached data.
+		if ( ! $this->flush ) {
+			// Try and get client mapping from cache.
+			$cached_mapping = $this->get_cache_data( 'mapping' );
+			if ( $cached_mapping ) {
+				return (array) $cached_mapping;
+			}
 		}
 
 		$this->line( "♻️  Refreshing Jira client mapping." );
