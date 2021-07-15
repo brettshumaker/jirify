@@ -55,7 +55,7 @@ if ( ! isset( $config->options->send_descriptions ) ) {
 $config->options->flush = set_flush_args( $argv );
 
 // Tell Jira whether or not to flush client mapping.
-$config->jira->flush = ! ( $config->options->flush === 'service' );
+$config->jira->flush = ( $config->options->flush && ! ( $config->options->flush === 'service' ) );
 
 // Load the Jira class.
 $jira = new Jirify_Jira( $config->jira );
