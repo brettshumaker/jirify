@@ -32,6 +32,17 @@ From the command line, run this command to log time:
 php /path/to/jirify/jirify.php log_time
 ```
 
+### Flushing Cached Data
+This tool will cache the "Clients," and "Projects" from your time tracking service, and the mapping of Jira issues to Clients/Nicknames for 12 hours by default. If you make changes to any of these and then want to immediately log your time, you'll want to flush the cached data so the latest information is used.
+
+You can do this with the following flags:
+
+- `--flush_service` - This will flush data from your time tracking service.
+
+- `--flush_jira` - This will flush Issue -> Client/Nickname mapping.
+
+- `--flush_all` - This will flush all of the above.
+
 ### Dry Run
 Jirify also accepts a `--dry_run=true` flag to run the command without actually logging time to Jira.
 

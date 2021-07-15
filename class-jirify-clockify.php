@@ -153,7 +153,7 @@ class Jirify_Clockify extends Jirify {
 	private function get_data_store( $store ) {
 		$data = $this->get_cache_data( $store );
 
-		if ( ! $data ) {
+		if ( ! $data || 'all' === $this->options->flush || 'service' === $this->options->flush ) {
 			$this->line( "🔄 Refreshing " . substr( $store, 0, -1 ) . " data..." );
 			$url  = $this->api_base . "/$store/";
 			$data = $this->remote_get( $url, $this->clockify_api_request_args() )['response'];
